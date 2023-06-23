@@ -134,19 +134,32 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    float positions[6] = {
+    float positions[] = {
         -.5f, -.5f,
-        0.0f,  .5f,
-         .5f, -.5f
+         .5f, -.5f,
+         .5f,  .5f,
+        -.5f,  .5f
+    };
+
+    unsigned int indicies[] = {
+        0, 1, 2,
+        2, 3, 0
     };
 
     unsigned int buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+
+    unsigned int ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indicies, GL_STATIC_DRAW);
+
 
     ShaderProgramSource source = PaseShader("res/shaders/Basic.shader");
     unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
@@ -160,12 +173,13 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-        const char* error;
-        glfwGetError(&error);
-        if (error)
-            std::cout << error << std::endl;
+        //const char* error;
+        //glfwGetError(&error);
+        //if (error)
+        //    std::cout << error << std::endl;
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
