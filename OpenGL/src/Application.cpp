@@ -9,6 +9,7 @@
 #include "Renderer.h"
 
 #include "VertexBuffer.h"
+#include "VertexBufferLayout.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
@@ -178,20 +179,18 @@ int main(void)
         float blueChannel = 1.0f;
         float bcIncrement = .05f;
 
+        Renderer renderer;
+
         /* Loop until the user closes the window  */
         while (!glfwWindowShouldClose(window))
         {
             /* Render here */
-            GLCall(glClear(GL_COLOR_BUFFER_BIT));
-
+            renderer.Clear();
 
             shader.Bind();
             shader.SetUniform4f("u_Color", 0.1f, 0.1f, blueChannel, 1.0f);
 
-            va.Bind();
-            ib.Bind();
-
-            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+            renderer.Draw(va, ib, shader);
 
             if (blueChannel > 1.0f)
                 bcIncrement = -.05f;
