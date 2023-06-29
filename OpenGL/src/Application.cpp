@@ -31,7 +31,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(1280, 960, "Hello World", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -49,10 +49,10 @@ int main(void)
 
     {
         float positions[] = {
-            -.5f, -.5f, 0.0f, 0.0f,
-             .5f, -.5f, 1.0f, 0.0f,
-             .5f,  .5f, 1.0f, 1.0f,
-            -.5f,  .5f, 0.0f, 1.0f
+            400.0f,      300.0f,    0.0f,   0.0f,
+            800.0f,      300.0f,    1.0f,   0.0f,
+            800.0f,      600.0f,    1.0f,   1.0f,
+            400.0f,      600.0f,    0.0f,   1.0f
         };
 
         unsigned int indicies[] = {
@@ -73,13 +73,18 @@ int main(void)
 
         IndexBuffer ib(indicies, 6);
 
-        glm::mat4 proj = glm::ortho(-.5f, .5f, -.375f, .375f, -1.0f, 1.0f);
-        //glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f); // glm to set aspect ratio
+        //glm::mat4 proj = glm::ortho(-.5f, .5f, -.375f, .375f, -1.0f, 1.0f);
+        glm::mat4 proj =  glm::ortho(0.0f, 1280.0f, 0.0f, 960.0f, -1.0f, 1.0f);             // glm to set aspect ratio
+        glm::mat4 view =  glm::translate(glm::mat4(1.0f), glm::vec3(-100.0f, 0.0f, 0.0f));  // move "camera" so negate
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(100.0f, 100.0f, 0.0f)); // move model
+
+        glm::mat4 mvp = proj * view * model;
+
 
         Shader shader("res/shaders/Basic.shader");      // path to shader file
         shader.Bind();
         shader.SetUniform4f("u_Color", .0f, 1.0f, .0f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", proj);                  // for fixing with aspect ratio
+        shader.SetUniformMat4f("u_MVP", mvp);                  // for fixing with aspect ratio
 
         Texture texture("res/textures/anyaT.png");      // input .png
         texture.Bind();
