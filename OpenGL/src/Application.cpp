@@ -52,10 +52,10 @@ int main(void)
 
     {
         float positions[] = {
-            300.0f,      200.0f,    0.0f,   0.0f,
-            600.0f,      200.0f,    1.0f,   0.0f,
-            600.0f,      400.0f,    1.0f,   1.0f,
-            300.0f,      400.0f,    0.0f,   1.0f
+            -150.0f,      -150.0f,    0.0f,   0.0f,
+             150.0f,      -150.0f,    1.0f,   0.0f,
+             150.0f,       150.0f,    1.0f,   1.0f,
+            -150.0f,       150.0f,    0.0f,   1.0f
         };
 
         unsigned int indicies[] = {
@@ -78,7 +78,7 @@ int main(void)
 
         //glm::mat4 proj = glm::ortho(-.5f, .5f, -.375f, .375f, -1.0f, 1.0f);
         glm::mat4 proj =  glm::ortho(0.0f, 960.0f, 0.0f, 640.0f, -1.0f, 1.0f);             // glm to set aspect ratio
-        glm::mat4 view =  glm::translate(glm::mat4(1.0f), glm::vec3(-100.0f, 0.0f, 0.0f));  // move "camera" so negate
+        glm::mat4 view =  glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));  // move "camera" so negate
 
 
         Shader shader("res/shaders/Basic.shader");      // path to shader file
@@ -97,7 +97,8 @@ int main(void)
         //float blueChannel = 1.0f;
         //float bcIncrement = .05f;   
         
-        glm::vec3 translation(0.0f, 0.0f, 0.0f);
+        glm::vec3 translationA(0.0f, 0.0f, 0.0f);
+        glm::vec3 translationB(400.0f, 400.0f, 0.0f);
 
         Renderer renderer;
 
@@ -113,23 +114,28 @@ int main(void)
 
             ImGui_ImplGlfwGL3_NewFrame();
 
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation); // move model
-            glm::mat4 mvp = proj * view * model;
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA); // move model
+                glm::mat4 mvp = proj * view * model;
+                shader.Bind();
+                shader.SetUniformMat4f("u_MVP", mvp);                  // for fixing with aspect ratio
 
-            shader.Bind();
-            shader.SetUniformMat4f("u_MVP", mvp);                  // for fixing with aspect ratio
-            //shader.SetUniform4f("u_Color", 0.1f, 0.1f, blueChannel, 1.0f);
-
-            renderer.Draw(va, ib, shader);
-
-            //if (blueChannel > 1.0f)
-            //    bcIncrement = -.05f;
-            //else if (blueChannel < 0.0f)
-            //    bcIncrement = .05f;
-            //blueChannel += bcIncrement;
+                renderer.Draw(va, ib, shader);
+            }
 
             {
-                ImGui::SliderFloat3("Translation", &translation.x, 0.0f, 960.0f);  
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB); // move model
+                glm::mat4 mvp = proj * view * model;
+                shader.Bind();
+                shader.SetUniformMat4f("u_MVP", mvp);                  // for fixing with aspect ratio
+
+                renderer.Draw(va, ib, shader);
+            }
+
+
+            {
+                ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 960.0f);  
+                ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 960.0f);  
 
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             }
