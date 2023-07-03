@@ -62,22 +62,50 @@ int main(void)
         ImGui_ImplGlfwGL3_Init(window, true);
         ImGui::StyleColorsDark();
 
-        test::TestClearColor test;
+        test::Test* currentTest = nullptr;
+        test::TestMenu* testMenu = new test::TestMenu(currentTest);
+        currentTest = testMenu;
 
-        //test::TestTexture test;
-        //test.SetRenderer(renderer);
+        testMenu->RegisterTest<test::TestClearColor>("Clear Color");
+        testMenu->RegisterTest<test::TestTexture>("Texture");
+
+        
 
         /* Loop until the user closes the window    -------------------------------------------*/
         while (!glfwWindowShouldClose(window))
         {
+            GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // set screen background to black
+
             /* Render here */
             renderer.Clear();
 
-            test.OnUpdate(0.0f);
-            test.OnRender();
-
             ImGui_ImplGlfwGL3_NewFrame();
-            test.OnImGuiRender();
+
+            if (currentTest)
+            {
+                currentTest->OnUpdate(0.0f);
+                currentTest->OnRender();
+                ImGui::Begin("Test");
+                if (currentTest != testMenu && ImGui::Button("<--"))
+                {
+                    delete currentTest;
+                    currentTest = testMenu;
+                }
+                currentTest->OnImGuiRender();
+                ImGui::End();
+            }
+
+            //if (ImGui::BeginMainMenuBar())
+            //{
+            //    if (ImGui::BeginMenu("File"))
+            //    {
+            //        if (ImGui::MenuItem("Test Clear Color", "Ctrl+O")) {  }
+            //        if (ImGui::MenuItem("Test Textrue", "Ctrl+S")) {  }
+            //        if (ImGui::MenuItem("Close", "Ctrl+W")) { /* Do stuff */ }
+            //        ImGui::EndMenu();
+            //    }
+            //    ImGui::EndMainMenuBar();
+            //}
 
             ImGui::Render();
             ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
@@ -86,6 +114,9 @@ int main(void)
 
             glfwPollEvents();
         }
+        delete currentTest;
+        if (currentTest != testMenu)
+            delete testMenu;
     }
 
     ImGui_ImplGlfwGL3_Shutdown();
