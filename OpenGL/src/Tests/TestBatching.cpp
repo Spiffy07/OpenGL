@@ -5,21 +5,20 @@
 
 test::TestBatching::TestBatching()
     : m_Positions{
-             580.0f,    270.0f,
-             780.0f,    270.0f,
-             780.0f,    470.0f,
-             580.0f,    470.0f,
-
-             180.0f,    270.0f,
-             380.0f,    270.0f,
-             380.0f,    470.0f,
-             180.0f,    470.0f,
-
+             580.0f, 270.0f,    0.1f, 1.0f, 0.1f, 1.0f,
+             780.0f, 270.0f,    0.1f, 1.0f, 0.1f, 1.0f,
+             780.0f, 470.0f,    0.1f, 1.0f, 0.1f, 1.0f,
+             580.0f, 470.0f,    0.1f, 1.0f, 0.1f, 1.0f,
+                                
+             180.0f, 270.0f,    0.1f, 0.1f, 1.0f, 1.0f,
+             380.0f, 270.0f,    0.1f, 0.1f, 1.0f, 1.0f,
+             380.0f, 470.0f,    0.1f, 0.1f, 1.0f, 1.0f,
+             180.0f, 470.0f,    0.1f, 0.1f, 1.0f, 1.0f
     },
         m_Indicies{
             0, 1, 2, 2, 3, 0,
              4, 5, 6, 6, 7, 4 },
-        m_Vb(m_Positions, 8 * 2 * sizeof(float)),
+        m_Vb(m_Positions, 8 * 6 * sizeof(float)),
         m_Ib(m_Indicies, 12),
         m_TranslationA(0.0f, 0.0f, 0.0f), 
         m_TranslationB(400.0f, 400.0f, 0.0f),
@@ -29,19 +28,15 @@ test::TestBatching::TestBatching()
         //m_Texture("res/textures/anyaT.png"),
         m_RendererPtr(nullptr)
 {
-    m_Layout.Push<float>(2);
+    m_Layout.Push<float>(2);        // seperate push calls Per attribute
+    m_Layout.Push<float>(4);
     m_Va.AddBuffer(m_Vb, m_Layout);
 
     m_Shader.Bind();
-    m_Shader.SetUniform4f("u_Color", .0f, 1.0f, .0f, 1.0f);
+    //m_Shader.SetUniform4f("u_Color", .0f, 1.0f, .0f, 1.0f);
 
     //m_Texture.Bind();
     //m_Shader.SetUniform1i("u_Texture", 0);
-
-    m_Va.Unbind();
-    m_Vb.Unbind();
-    m_Ib.Unbind();
-    m_Shader.Unbind();
 }
 
 test::TestBatching::~TestBatching()

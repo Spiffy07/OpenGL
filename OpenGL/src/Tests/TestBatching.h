@@ -29,7 +29,7 @@ namespace test {
 		inline Shader& GetShader() { return m_Shader; };
 
 	private:
-		float m_Positions[32];
+		float m_Positions[48];
 		unsigned int m_Indicies[12];
 
 		VertexBuffer m_Vb;
