@@ -23,6 +23,7 @@
 
 #include "Tests/TestClearColor.h"
 #include "Tests/TestTexture.h"
+#include "Tests/TestBatching.h"
 
 int main(void)
 {
@@ -68,13 +69,13 @@ int main(void)
 
         testMenu->RegisterTest<test::TestClearColor>("Clear Color");
         testMenu->RegisterTest<test::TestTexture>("Texture");
+        testMenu->RegisterTest<test::TestBatching>("Batching");
 
         
 
         /* Loop until the user closes the window    -------------------------------------------*/
         while (!glfwWindowShouldClose(window))
         {
-            GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // set screen background to black
 
             /* Render here */
             renderer.Clear();
@@ -90,6 +91,7 @@ int main(void)
                 {
                     delete currentTest;
                     currentTest = testMenu;
+                    GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // set screen background to black
                 }
                 currentTest->OnImGuiRender();
                 ImGui::End();
