@@ -5,7 +5,7 @@
 #include "Renderer.h"
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
-//#include "Texture.h"
+#include "Texture.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/glm.hpp"
@@ -29,7 +29,7 @@ namespace test {
 		inline Shader& GetShader() { return m_Shader; };
 
 	private:
-		float m_Positions[48];
+		float m_Positions[8 * 9];
 		unsigned int m_Indicies[12];
 
 		VertexBuffer m_Vb;
@@ -37,7 +37,8 @@ namespace test {
 		VertexBufferLayout m_Layout;
 		IndexBuffer m_Ib;
 		Shader m_Shader;
-		//Texture m_Texture;      // input .png
+		Texture m_TextureA;
+		Texture m_TextureY;
 		Renderer* m_RendererPtr;
 
 		glm::mat4 m_Proj;

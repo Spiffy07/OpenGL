@@ -71,7 +71,7 @@ int main(void)
         testMenu->RegisterTest<test::TestTexture>("Texture");
         testMenu->RegisterTest<test::TestBatching>("Batching");
 
-        
+        GLCall(glClearColor(0.2f, 0.2f, 0.2f, 1.0f)); // set screen background to gray
 
         /* Loop until the user closes the window    -------------------------------------------*/
         while (!glfwWindowShouldClose(window))
@@ -91,7 +91,7 @@ int main(void)
                 {
                     delete currentTest;
                     currentTest = testMenu;
-                    GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f)); // set screen background to black
+                    GLCall(glClearColor(0.2f, 0.2f, 0.2f, 1.0f)); // set screen background to gray
                 }
                 currentTest->OnImGuiRender();
                 ImGui::End();
