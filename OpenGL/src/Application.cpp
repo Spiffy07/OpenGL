@@ -24,6 +24,7 @@
 #include "Tests/TestClearColor.h"
 #include "Tests/TestTexture.h"
 #include "Tests/TestBatching.h"
+#include "Tests/TestDynamicBatch.h"
 
 int main(void)
 {
@@ -70,6 +71,7 @@ int main(void)
         testMenu->RegisterTest<test::TestClearColor>("Clear Color");
         testMenu->RegisterTest<test::TestTexture>("Texture");
         testMenu->RegisterTest<test::TestBatching>("Batching");
+        testMenu->RegisterTest<test::TestDynamicBatch>("Dynamic Batching");
 
         GLCall(glClearColor(0.2f, 0.2f, 0.2f, 1.0f)); // set screen background to gray
 
