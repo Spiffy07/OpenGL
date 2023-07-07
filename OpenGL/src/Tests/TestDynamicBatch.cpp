@@ -22,45 +22,51 @@ struct Vertex
     float texIndex;
 };
 
-static std::array<Vertex, 4> MakeQuad(float x, float y, float width, float height, float texId)
+static Vertex* MakeQuad(Vertex* target, 
+    float x, float y, 
+    float width = 100.0f, float height = 100.0f, 
+    float texId = 0.0f)
 {
-    Vertex v0;
-    v0.position = { x, y };
-    v0.color = { 0.0f, 1.0f, 0.0f, 1.0f };
-    v0.texCoord = { 0.0f, 0.0f };
-    v0.texIndex = texId;
-        
-    Vertex v1;
-    v1.position = { x + width, y };
-    v1.color = { 0.0f, 1.0f, 0.0f, 1.0f };
-    v1.texCoord = { 1.0f, 0.0f };
-    v1.texIndex = texId;
-       
-    Vertex v2;
-    v2.position = { x + width, y + height };
-    v2.color = { 0.0f, 1.0f, 0.0f, 1.0f };
-    v2.texCoord = { 1.0f, 1.0f };
-    v2.texIndex = texId;
-        
-    Vertex v3;
-    v3.position = { x, y + height };
-    v3.color = { 0.0f, 1.0f, 0.0f, 1.0f };
-    v3.texCoord = { 0.0f, 1.0f };
-    v3.texIndex = texId;
+    target->position = { x, y };
+    target->color = { 0.0f, 1.0f, 0.0f, 1.0f };
+    target->texCoord = { 0.0f, 0.0f };
+    target->texIndex = texId;
+    target++;
 
-    return { v0, v1, v2, v3 };
+    target->position = { x + width, y };
+    target->color = { 0.0f, 1.0f, 0.0f, 1.0f };
+    target->texCoord = { 1.0f, 0.0f };
+    target->texIndex = texId;
+    target++;
+
+    target->position = { x + width, y + height };
+    target->color = { 0.0f, 1.0f, 0.0f, 1.0f };
+    target->texCoord = { 1.0f, 1.0f };
+    target->texIndex = texId;
+    target++;
+
+    target->position = { x, y + height };
+    target->color = { 0.0f, 1.0f, 0.0f, 1.0f };
+    target->texCoord = { 0.0f, 1.0f };
+    target->texIndex = texId;
+    target++;
+
+    return target;
 }
 
 test::TestDynamicBatch::TestDynamicBatch()
-    :   m_Indicies{
-            0, 1, 2, 2, 3, 0,
-             4, 5, 6, 6, 7, 4 },
+    :   m_QuadCount(0),
         m_Shader("res/shaders/Base.shader"),
         m_TextureA("res/textures/anyaT.png"),
         m_TextureY("res/textures/yor.png"),
         m_Proj(glm::ortho(0.0f, 960.0f, 0.0f, 640.0f, -1.0f, 1.0f)),
         m_RendererPtr(nullptr)
 {
+    const size_t MaxQuadCount = 1000;
+    const size_t MaxVertexCount = MaxQuadCount * 4;
+    const size_t MaxIndexCount = MaxQuadCount * 6;
+
+
         // create and bind vertex array object
     GLCall(glCreateVertexArrays(1, &m_Va));
     GLCall(glBindVertexArray(m_Va));
@@ -68,7 +74,7 @@ test::TestDynamicBatch::TestDynamicBatch()
         // create and bind 'Dynamic' vertex buffer of 1000
     GLCall(glCreateBuffers(1, &m_Vb));
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Vb));
-    GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 1000, nullptr, GL_DYNAMIC_DRAW));
+    GLCall(glBufferData(GL_ARRAY_BUFFER, MaxVertexCount * sizeof(Vertex), nullptr, GL_DYNAMIC_DRAW));
 
         // setup layout assigned to vertex array object
     GLCall(glEnableVertexArrayAttrib(m_Va, 0));
@@ -84,9 +90,28 @@ test::TestDynamicBatch::TestDynamicBatch()
     GLCall(glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, texIndex)));
 
         // create index buffer
+    //m_Indicies{
+    //         0, 1, 2, 2, 3, 0,
+    //         4, 5, 6, 6, 7, 4 },
+
+    unsigned int indicies[MaxIndexCount];
+    size_t offset = 0;
+    for (size_t i = 0; i < MaxIndexCount; i += 6)
+    {
+        indicies[i + 0] = 0 + offset;
+        indicies[i + 1] = 1 + offset;
+        indicies[i + 2] = 2 + offset;
+
+        indicies[i + 3] = 2 + offset;
+        indicies[i + 4] = 3 + offset;
+        indicies[i + 5] = 0 + offset;
+
+        offset += 4;
+    }
+
     GLCall(glCreateBuffers(1, &m_Ib));
     GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ib));
-    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(m_Indicies), m_Indicies, GL_STATIC_DRAW));
+    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW));
 
     m_Shader.Bind();
     m_TextureA.Bind();
@@ -113,16 +138,26 @@ void test::TestDynamicBatch::OnUpdate(float deltaTime)
         430.0f, 520.0f, 0.1f, 0.1f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
         130.0f, 520.0f, 0.1f, 0.1f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f
     };*/
+    m_QuadCount = 0;
 
-    auto q0 = MakeQuad(m_QuadPosition1[0], m_QuadPosition1[1], 300.0f, 300.0f, 0.0f);
-    auto q1 = MakeQuad(m_QuadPosition2[0], m_QuadPosition2[1], 127.0f, 498.0f, 1.0f);
+    std::array<Vertex, 1000> verticies;
+    Vertex* buffer = verticies.data();
+    for (size_t y = 0; y < 5; y++)
+    {
+        for (size_t x = 0; x < 5; x++)
+        {
+            buffer = MakeQuad(buffer, x * 100, y * 100);
+            m_QuadCount += 1;
+        }
+    }
 
-    Vertex verticies[8];
-    memcpy(verticies, q0.data(), q0.size() * sizeof(Vertex));
-    memcpy(verticies +q0.size(), q1.data(), q1.size() * sizeof(Vertex));
+    buffer = MakeQuad(buffer, m_QuadPosition1[0], m_QuadPosition1[1], 300.0f, 300.0f, 0.0f);
+    m_QuadCount += 1;
+    buffer = MakeQuad(buffer, m_QuadPosition2[0], m_QuadPosition2[1], 127.0f, 498.0f, 1.0f);
+    m_QuadCount += 1;
 
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Vb));
-    GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verticies), verticies));
+    GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, verticies.size() * sizeof(Vertex), verticies.data()));
 
     m_Shader.Bind();
 
@@ -131,7 +166,7 @@ void test::TestDynamicBatch::OnUpdate(float deltaTime)
 
 void test::TestDynamicBatch::OnRender()
 {
-    GLCall(glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0));
+    GLCall(glDrawElements(GL_TRIANGLES, m_QuadCount * 6, GL_UNSIGNED_INT, 0));
 }  
 
 void test::TestDynamicBatch::OnImGuiRender()
