@@ -25,11 +25,11 @@ namespace test {
 		void SetRenderer(Renderer& renderer);
 
 	private:
-		unsigned int m_Indicies[12];
+		//unsigned int m_Indicies[12];
 		unsigned int m_Vb;
 		unsigned int m_Ib;
 		unsigned int m_Va;
-
+		unsigned int m_QuadCount;
 		
 		VertexBufferLayout m_Layout;
 		Shader m_Shader;

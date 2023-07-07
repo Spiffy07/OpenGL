@@ -22,7 +22,10 @@ struct Vertex
     float texIndex;
 };
 
-static std::array<Vertex, 4> MakeQuad(float x, float y, float width, float height, float texId)
+static std::array<Vertex, 4> MakeQuad(
+    float x, float y, 
+    float width = 100.0f, float height = 100.0f, 
+    float texId = 0.0f)
 {
     Vertex v0;
     v0.position = { x, y };
@@ -32,13 +35,13 @@ static std::array<Vertex, 4> MakeQuad(float x, float y, float width, float heigh
         
     Vertex v1;
     v1.position = { x + width, y };
-    v1.color = { 0.0f, 1.0f, 0.0f, 1.0f };
+    v1.color = { 0.0f, 0.0f, 1.0f, 1.0f };
     v1.texCoord = { 1.0f, 0.0f };
     v1.texIndex = texId;
        
     Vertex v2;
     v2.position = { x + width, y + height };
-    v2.color = { 0.0f, 1.0f, 0.0f, 1.0f };
+    v2.color = { 0.0f, 0.0f, 1.0f, 1.0f };
     v2.texCoord = { 1.0f, 1.0f };
     v2.texIndex = texId;
         
@@ -52,14 +55,12 @@ static std::array<Vertex, 4> MakeQuad(float x, float y, float width, float heigh
 }
 
 test::TestDynamicBatch::TestDynamicBatch()
-    :   m_Indicies{
-            0, 1, 2, 2, 3, 0,
-             4, 5, 6, 6, 7, 4 },
-        m_Shader("res/shaders/Base.shader"),
+    :   m_Shader("res/shaders/Base.shader"),
         m_TextureA("res/textures/anyaT.png"),
         m_TextureY("res/textures/yor.png"),
         m_Proj(glm::ortho(0.0f, 960.0f, 0.0f, 640.0f, -1.0f, 1.0f)),
-        m_RendererPtr(nullptr)
+        m_RendererPtr(nullptr),
+        m_QuadCount(0)
 {
         // create and bind vertex array object
     GLCall(glCreateVertexArrays(1, &m_Va));
@@ -86,7 +87,7 @@ test::TestDynamicBatch::TestDynamicBatch()
         // create index buffer
     GLCall(glCreateBuffers(1, &m_Ib));
     GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ib));
-    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(m_Indicies), m_Indicies, GL_STATIC_DRAW));
+    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 250 * 3, nullptr, GL_DYNAMIC_DRAW));
 
     m_Shader.Bind();
     m_TextureA.Bind();
@@ -114,15 +115,29 @@ void test::TestDynamicBatch::OnUpdate(float deltaTime)
         130.0f, 520.0f, 0.1f, 0.1f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f
     };*/
 
-    auto q0 = MakeQuad(m_QuadPosition1[0], m_QuadPosition1[1], 300.0f, 300.0f, 0.0f);
-    auto q1 = MakeQuad(m_QuadPosition2[0], m_QuadPosition2[1], 127.0f, 498.0f, 1.0f);
+        // dynamic vertex buffer
 
-    Vertex verticies[8];
-    memcpy(verticies, q0.data(), q0.size() * sizeof(Vertex));
-    memcpy(verticies +q0.size(), q1.data(), q1.size() * sizeof(Vertex));
+    std::array<std::array<Vertex, 4>, 10> verticies;
+    verticies[0] = MakeQuad(m_QuadPosition1[0], m_QuadPosition1[1], 300.0f, 300.0f, 0.0f);
+    verticies[1] = MakeQuad(m_QuadPosition2[0], m_QuadPosition2[1], 127.0f, 498.0f, 1.0f);
+    verticies[2] = MakeQuad(0.0f, 0.0f);
+    verticies[3] = MakeQuad(110.0f, 0.0f);
+    verticies[4] = MakeQuad(220.0f, 0.0f);
 
     GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Vb));
-    GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verticies), verticies));
+    GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verticies), &verticies));
+
+        // dynamic index buffer
+    unsigned int indicies[5 * 6] = {
+         0,  1,  2,  2,  3,  0,
+         4,  5,  6,  6,  7,  4,
+         8,  9, 10, 10, 11,  8,
+        12, 13, 14, 14, 15, 12,
+        16, 17, 18, 18, 19, 16
+    };
+
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Ib));
+    GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(indicies), indicies));
 
     m_Shader.Bind();
 
@@ -131,7 +146,7 @@ void test::TestDynamicBatch::OnUpdate(float deltaTime)
 
 void test::TestDynamicBatch::OnRender()
 {
-    GLCall(glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0));
+    GLCall(glDrawElements(GL_TRIANGLES, m_QuadCount * 6, GL_UNSIGNED_INT, 0));
 }  
 
 void test::TestDynamicBatch::OnImGuiRender()
@@ -140,6 +155,10 @@ void test::TestDynamicBatch::OnImGuiRender()
     ImGui::Begin("Controls");
     ImGui::DragFloat2("Quad1 Position", m_QuadPosition1, 1.0f);
     ImGui::DragFloat2("Quad2 Position", m_QuadPosition2, 1.0f);
+    if (ImGui::Button("Add Quad") && m_QuadCount < 5)
+        m_QuadCount++;
+    if (ImGui::Button("Delete last Quad") && m_QuadCount > 0) 
+        m_QuadCount--;
 
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::End();
